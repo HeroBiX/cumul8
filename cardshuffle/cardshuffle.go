@@ -42,6 +42,7 @@ func splitDeck(d []Card) ([]Card, []Card) {
 	return deck1, deck2
 }
 
+// Take out 1 quarter of the deck
 func quarterDeck(q int, deck1, deck2 []Card) ([]Card, []Card, []Card) {
 	var tempDeck []Card // new deck with riffled cards
 
@@ -64,8 +65,8 @@ func Shuffle(slc []Card) []Card {
 	return slc
 }
 
-// riffle
-func riffle(unRiffle []Card) []Card {
+// Riffle
+func Riffle(unRiffle []Card) []Card {
 	var riffled []Card     // new deck with riffled cards
 	q := len(unRiffle) / 4 // how many cards is a quarter
 	for i := 0; i <= 3; i++ {
@@ -76,9 +77,10 @@ func riffle(unRiffle []Card) []Card {
 	return riffled                            // return the riffled deck of cards
 }
 
-func shuffleRiffleShuffle(tempDeck []Card) []Card {
+// Strip Shuffle Strip
+func ShuffleRiffleShuffle(tempDeck []Card) []Card {
 	tempDeck = Shuffle(tempDeck)
-	tempDeck = riffle(tempDeck)
+	tempDeck = Riffle(tempDeck)
 	tempDeck = Shuffle(tempDeck)
 	return tempDeck
 }
@@ -118,35 +120,29 @@ func shuffleDeckShoe(deckLeft, deckRight []Card) {
 
 	deckLeft, deckRight, tempDeck = quarterDeck(q, deckLeft, deckRight) // Take a quarter from each pile
 	workingDeck = append(workingDeck, tempDeck[:]...)                   // merge those together to the working deck
-	workingDeck = shuffleRiffleShuffle(workingDeck)
-
-	//  move into a function
+	workingDeck = ShuffleRiffleShuffle(workingDeck)
 
 	var isRightDeck bool      // should the cards be taken from the right or left stack
 	for i := 0; i <= 5; i++ { // loop through the cards and shuffle them into the working deck
 		if isRightDeck == true { // take 1/4 from working deck and right deck
 			workingDeck, deckRight, tempDeck = quarterDeck(q, workingDeck, deckRight)
 			isRightDeck = false
-			fmt.Println("-- right")
 		} else { // take 1/4 from working deck and left deck
 			workingDeck, deckLeft, tempDeck = quarterDeck(q, workingDeck, deckLeft)
 			isRightDeck = true
-			fmt.Println("-- left")
 		}
-		tempDeck = shuffleRiffleShuffle(tempDeck)         // shuffle, riffle, shuffle
+		tempDeck = ShuffleRiffleShuffle(tempDeck)         // shuffle, Riffle, shuffle
 		workingDeck = append(workingDeck, tempDeck[:]...) // add tempDeck to workingDeck
-		// workingDeck = riffle(workingDeck)                 // riffle working deck
+		// workingDeck = Riffle(workingDeck)                 // Riffle working deck
 		tempDeck = tempDeck[:0] // clean out the tempDeck
 	}
 
 	deckRight, deckLeft = splitDeck(workingDeck)
 	workingDeck = workingDeck[:0] // work deck becomes empty
 
-	// move into a function
-
-	for i := 0; i <= 3; i++ {
+	for i := 0; i <= 3; i++ { // Riffle together left and right deck
 		deckRight, deckLeft, tempDeck = quarterDeck(q, deckRight, deckLeft)
-		tempDeck = riffle(tempDeck)
+		tempDeck = Riffle(tempDeck)
 		workingDeck = append(workingDeck, tempDeck[:]...)
 		tempDeck = tempDeck[:0] // clean out the tempDeck
 	}
