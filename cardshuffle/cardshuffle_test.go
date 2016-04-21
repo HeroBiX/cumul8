@@ -71,6 +71,21 @@ func TestShuffleRiffleShuffle(t *testing.T) { // test the ShuffleRiffleShuffle f
 
 }
 
+func TestQuarterDeck(t *testing.T) {
+	t.Errorf("TestQuarterDeck - Need test")
+
+}
+
+func TestSplitDeck(t *testing.T) {
+	t.Errorf("TestSplitDeck - Need test")
+
+}
+
+func TestCutDeck(t *testing.T) {
+	t.Errorf("TestCutDeck - Need test")
+
+}
+
 func testEq(a, b []Card) bool { // test to see if the 2 decks are matching up
 
 	if a == nil && b == nil {
