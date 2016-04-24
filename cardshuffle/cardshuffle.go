@@ -176,7 +176,5 @@ func RiffleTogetherDecks(deckRight, deckLeft []Card, q int) []Card {
 		workingDeck = append(workingDeck, tempDeck[:]...)
 		tempDeck = tempDeck[:0] // clean out the tempDeck
 	}
-
 	return workingDeck
-
 }
