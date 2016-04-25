@@ -6,30 +6,27 @@
 </head>
 
 <body>
-<p>Logged in as: &quot;{{.User}}&quot; -- Status Message: &quot;{{.Status}}&quot;</p>
+<p>{{.Status}}</p>
 
 <form action="/logout/" method="POST">
 <input type="submit" value="logout"></form>
 
 <p>Upload</p>
-<form action="/uploadfiles/" enctype="multipart/form-data" method="post">
-  <label for="file">Upload File:</label>
-  <input type="file" name="file" id="file">
-  <input type="submit" name="submit" value="Submit">
+<form enctype="multipart/form-data" action="http://127.0.0.1:8080/upload" method="post">
+      <input type="file" name="uploadfile" />
+      <input type="hidden" name="token" value="{{.}}"/>
+      <input type="submit" value="upload" />
 </form>
 
 
 <p>&nbsp;</p>
-<p>Admin: <br />
-Upload limit is currently: {{.FileSize}} MB</p>
+<p>Admin:</p>
 <form action="/limitsize/" method="POST">
 Size limit: <div><input type="text" name="size-limit"></div> 
-<input type="submit" value="change"></form>
+<input type="submit" value="reset"></form>
 
 <p>&nbsp;</p>
 <p>List of your files:</p>
-<p>{{.ListFiles}}</p>
-<p>&nbsp;</p>
 <p>&nbsp;</p>
 
 </body>

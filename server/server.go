@@ -4,7 +4,6 @@ import (
 	// Standard library packages
 	"html/template"
 	"net/http"
-	"regexp"
 
 	// Third party packages
 	"github.com/HeroBiX/cumul8/server/controllers"
@@ -17,7 +16,10 @@ var listLinks string
 var templates = template.Must(template.ParseFiles("html/upload.html", "html/main.html"))
 
 type Page struct {
-	Status string
+	Status    string
+	User      string
+	FileSize  int64
+	ListFiles template.HTML
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
@@ -27,32 +29,27 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 	}
 }
 
-var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
-
-func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		m := validPath.FindStringSubmatch(r.URL.Path)
-		if m == nil {
-			http.NotFound(w, r)
-			return
-		}
-		fn(w, r, m[2])
-	}
-}
-
 func Main(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	p := &Page{Status: controllers.StatusHTML}
 	renderTemplate(w, "main", p)
 	controllers.StatusHTML = ""
+	controllers.CurrentUser = ""
 }
 
 func Upload(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	p := &Page{Status: controllers.StatusHTML}
-	renderTemplate(w, "upload", p)
-	controllers.StatusHTML = ""
+	if controllers.CurrentUser == "" {
+		controllers.PleaseLogin(w, r)
+	} else {
+		uc := controllers.NewUserController(getSession())
+		y := template.HTML(controllers.ListFiles(uc))
+		p := &Page{Status: controllers.StatusHTML, User: controllers.CurrentUser, ListFiles: y, FileSize: controllers.MaxSize}
+		renderTemplate(w, "upload", p)
+		controllers.StatusHTML = ""
+	}
 }
 
 func main() {
+
 	// Instantiate a new router
 	r := httprouter.New()
 
@@ -69,8 +66,17 @@ func main() {
 	// Login
 	r.POST("/login/", uc.Login)
 
+	// Upload file
+	r.POST("/uploadfiles/", uc.Upload)
+
 	// Create a new user
 	r.POST("/create-user/", uc.CreateUser)
+
+	// Download file
+	r.GET("/get/", uc.Get)
+
+	// Change file size
+	r.POST("/limitsize/", uc.Limitsize)
 
 	// Remove an existing user
 	r.DELETE("/user/:id", uc.RemoveUser)

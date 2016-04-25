@@ -40,8 +40,8 @@ func QuarterDeck(q int, deck1, deck2 []Card) ([]Card, []Card, []Card) {
 
 	tempDeck = append(tempDeck, deck1[len(deck1)-q:]...)        // move cards from deck1 to tempDeck
 	deck1 = append(deck1[:len(deck1)-q], deck1[len(deck1):]...) // remove those cards from deck1
-	tempDeck = append(tempDeck, deck2[len(deck2)-q:]...)        // move cards from deck1 to tempDeck
-	deck2 = append(deck2[:len(deck2)-q], deck2[len(deck2):]...) // remove those cards from deck1
+	tempDeck = append(tempDeck, deck2[len(deck2)-q:]...)        // move cards from deck2 to tempDeck
+	deck2 = append(deck2[:len(deck2)-q], deck2[len(deck2):]...) // remove those cards from deck2
 
 	return deck1, deck2, tempDeck
 }

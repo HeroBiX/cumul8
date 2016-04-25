@@ -94,7 +94,6 @@ func ExistingUserName(un, lun string, uc UserController) bool {
 			b = true
 		}
 	}
-
 	return b
 }
 

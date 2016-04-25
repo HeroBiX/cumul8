@@ -19,6 +19,7 @@ type (
 		Online        bool          `json:"online" bson:"online"`
 		LastLoggedIn  time.Time     `json:"lastloggedin" bson:"lastloggedin"`
 		Access        string        `json:"access" bson:"access"`
-		Files         []string      `json:"files" bson"files"`
+		Filename      []string      `json:"filename" bson"filename"`
+		//FileHeader    textproto.MIMEHeader `json:"fileheader" bson"fileheader"`
 	}
 )
