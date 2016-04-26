@@ -216,7 +216,9 @@ func (uc UserController) Limitsize(w http.ResponseWriter, r *http.Request, p htt
 
 		var newSize int64
 		a := r.FormValue("size-limit")
-		newSize, err := strconv.ParseInt(a, 16, 32)
+
+		// converting newSize into int64
+		newSize, err := strconv.ParseInt(a, 10, 64)
 		if err != nil {
 			StatusHTML = `Please insert a number`
 			// Redirect to upload page
@@ -240,9 +242,8 @@ func (uc UserController) Limitsize(w http.ResponseWriter, r *http.Request, p htt
 }
 
 func ChangeSizeRestriction(s int64, mg *mgo.Session) error {
-
 	// Update size limit to the DB
-	err := mg.DB("file-server").C("limit").Update(bson.M{"limit": ""}, bson.M{"$set": bson.M{"limit": s}})
+	err := mg.DB("file-server").C("sizeLimit").Update(bson.M{}, bson.M{"$set": bson.M{"limit": s}})
 
 	return err
 }
@@ -348,7 +349,7 @@ func FileSizeDB(mg *mgo.Session) {
 	defer session.Close()
 
 	u := models.SizeLimit{}
-	if err := c.Find(bson.M{"_id": ""}).One(&u); err != nil {
+	if err := c.Find(bson.M{}).One(&u); err != nil {
 		fmt.Println("Error getting SizeLimit", err)
 	}
 
@@ -358,7 +359,6 @@ func FileSizeDB(mg *mgo.Session) {
 		b := models.SizeLimit{
 			Limit: MaxSize,
 		}
-
 		// Write the limitSize to mongo
 		if err := c.Insert(b); err != nil {
 			fmt.Println("Error: Problem writing Size Limit - ", err)
