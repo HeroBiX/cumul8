@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-// user Dennis, frej and cumul8 has been added for this test
+// user Dennis, Frej and cumul8 has been added for this test
 
 func TestAddFileName(t *testing.T) {
 	s, err := mgo.Dial("mongodb://localhost")
@@ -23,7 +23,7 @@ func TestAddFileName(t *testing.T) {
 	}{
 		{"cumul8", "bobs.file", nil},
 		{"Dennis", "dennis.file", nil},
-		{"frej", "secret.txt", nil},
+		{"Frej", "secret.txt", nil},
 	}
 
 	for _, test := range tests {
@@ -47,7 +47,7 @@ func TestGetUser(t *testing.T) {
 	}{
 		{"cumul8", nil},
 		{"Dennis", nil},
-		{"frej", nil},
+		{"Frej", nil},
 	}
 
 	for _, test := range tests {

@@ -5,6 +5,8 @@ import (
 	"testing"
 )
 
+// following users was added for this test: Dennis, Frej
+
 func TestExistingUserName(t *testing.T) {
 	s, err := mgo.Dial("mongodb://localhost")
 
