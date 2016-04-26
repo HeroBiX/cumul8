@@ -154,7 +154,7 @@ func (uc UserController) Upload(w http.ResponseWriter, r *http.Request, p httpro
 
 		// add filename to DB
 		mgo := uc.session
-		err = AddFileName(mgo, handler.Filename)
+		err = AddFileName(mgo, handler.Filename, CurrentUser)
 		if err != nil {
 			fmt.Println("Add filename error: ", err)
 			StatusHTML = `Problem uploading filename to DB`
@@ -249,14 +249,14 @@ func ChangeSizeRestriction(s int64, mg *mgo.Session) error {
 }
 
 // Get list of all users files
-func ListFiles(mg *mgo.Session) string {
+func ListFiles(mg *mgo.Session, bob string) string {
 	c := mg.DB("file-server").C("users")
 	session := mg.Copy()
 	defer session.Close()
 
 	// Get users data
 	u := models.User{}
-	if err := c.Find(bson.M{"username": CurrentUser}).One(&u); err != nil {
+	if err := c.Find(bson.M{"username": bob}).One(&u); err != nil {
 		StatusHTML = `The unicorns was able to log you in but not to list your files`
 		fmt.Println("Error listing users files", err)
 	}
@@ -277,23 +277,21 @@ func creatingHTMLcode(bob string) string {
 }
 
 // adding filenames to DB
-func AddFileName(mg *mgo.Session, fn string) error {
+func AddFileName(mg *mgo.Session, fn string, bob string) error {
 	c := mg.DB("file-server").C("users")
 	session := mg.Copy()
 	defer session.Close()
 
 	u := models.User{}
-	if err := c.Find(bson.M{"username": CurrentUser}).One(&u); err != nil {
+	if err := c.Find(bson.M{"username": bob}).One(&u); err != nil {
 		StatusHTML = `The unicorns was able to log you in but not to list your files`
 		fmt.Println("Error listing users files", err)
 	}
 
-	// Grab username
-	userUsername := CurrentUser
 	u.Filename = append(u.Filename, fn)
 
 	// add filename to DB
-	err := c.Update(bson.M{"username": userUsername}, bson.M{"$set": bson.M{"filename": u.Filename}})
+	err := c.Update(bson.M{"username": bob}, bson.M{"$set": bson.M{"filename": u.Filename}})
 
 	return err
 }

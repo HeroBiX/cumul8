@@ -41,7 +41,7 @@ func Upload(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		controllers.PleaseLogin(w, r)
 	} else {
 		s := getSession()
-		y := template.HTML(controllers.ListFiles(s))
+		y := template.HTML(controllers.ListFiles(s, controllers.CurrentUser))
 		p := &Page{Status: controllers.StatusHTML, User: controllers.CurrentUser, ListFiles: y, FileSize: controllers.MaxSize}
 		renderTemplate(w, "upload", p)
 		controllers.StatusHTML = ""
