@@ -1,6 +1,15 @@
-package wordGame
+package main
 
-import "unicode"
+import (
+	"fmt"
+	"unicode"
+)
+
+func main() {
+	fmt.Println("Daddy is: ", IsPalindrome("daddy"))
+	fmt.Println("Bob is: ", IsPalindrome("Bob"))
+	fmt.Println("solutomaattimittaamotulos is: ", IsPalindrome("solutomaattimittaamotulos"))
+}
 
 // palindrome check if a words is writen the same forward and backwards
 // program is ignoring case and non-letters as #@$ 231
