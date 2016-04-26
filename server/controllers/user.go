@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 
 	// Third Party packages
 	"github.com/HeroBiX/cumul8/server/models"
@@ -68,9 +67,9 @@ func (uc UserController) ResetPwd(w http.ResponseWriter, r *http.Request, p http
 }
 
 // Fetch User Information from db
-func GetUser(un string, uc UserController) (models.User, error) {
-	c := uc.session.DB("file-server").C("users")
-	session := uc.session.Copy()
+func GetUser(un string, mg *mgo.Session) (models.User, error) {
+	c := mg.DB("file-server").C("users")
+	session := mg.Copy()
 	defer session.Close()
 
 	// Get users data
@@ -97,33 +96,26 @@ func (uc UserController) Login(w http.ResponseWriter, r *http.Request, p httprou
 	userUsername := r.FormValue("login-username")
 	userPassword := r.FormValue("login-password")
 
+	mg := uc.session
 	// Get users data
-	u, err := GetUser(userUsername, uc)
+	u, err := GetUser(userUsername, mg)
 
 	// check for error
 	if err != nil {
 		fmt.Println("error: ", err)
-		StatusHTML = `Hamsters Reprot: Wrong Username or Password`
+		StatusHTML = `Hamster Reports: Wrong Username or Password`
 		// Redirect back to login
 		http.Redirect(w, r, "/", http.StatusFound)
 	}
 
 	// check if username and password is correct
 	if userPassword != u.Password {
-		StatusHTML = `Hamsters Reprot: Wrong Username or Password`
+		StatusHTML = `Hamster Reports: Wrong Username or Password`
 		// Redirect back to login
 		http.Redirect(w, r, "/", http.StatusFound)
 
 	} else {
-		loggedIn := true
-		err = updateLogin(userUsername, uc, loggedIn)
-		if err != nil {
-			fmt.Println("error: ", err)
-			StatusHTML = `Problem login in, please try again`
-			http.Redirect(w, r, "/", http.StatusFound)
-		}
 		CurrentUser = userUsername
-
 		// Redirect to upload page
 		http.Redirect(w, r, "/upload/", http.StatusFound)
 	}
@@ -136,14 +128,12 @@ func (uc UserController) Upload(w http.ResponseWriter, r *http.Request, p httpro
 	session := uc.session.Copy()
 	defer session.Close()
 
-	fmt.Println("size ", r.ContentLength)
-
 	if r.ContentLength/1000000 > MaxSize { // making sure it counts in MB
 		http.Error(w, "File is to big... please limit yourself", http.StatusExpectationFailed)
 		return
-		// StatusHTML = `File is to big... please limit yourself to: ` + strconv.FormatInt(MaxSize, 10) + `MB`
-		// http.Redirect(w, r, "/upload/", http.StatusFound)
+
 	} else {
+
 		file, handler, err := r.FormFile("file")
 		if err != nil {
 			fmt.Println(err)
@@ -158,13 +148,15 @@ func (uc UserController) Upload(w http.ResponseWriter, r *http.Request, p httpro
 			fmt.Println(err)
 			return
 		}
+
 		defer f.Close()
 		io.Copy(f, file)
 
 		// add filename to DB
-		err = addFileName(uc, handler.Filename)
+		mgo := uc.session
+		err = AddFileName(mgo, handler.Filename)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("Add filename error: ", err)
 			StatusHTML = `Problem uploading filename to DB`
 			http.Redirect(w, r, "/upload/", http.StatusFound)
 			return
@@ -221,6 +213,7 @@ func (uc UserController) Limitsize(w http.ResponseWriter, r *http.Request, p htt
 		http.Redirect(w, r, "/upload/", http.StatusFound)
 
 	} else {
+
 		var newSize int64
 		a := r.FormValue("size-limit")
 		newSize, err := strconv.ParseInt(a, 16, 32)
@@ -228,20 +221,36 @@ func (uc UserController) Limitsize(w http.ResponseWriter, r *http.Request, p htt
 			StatusHTML = `Please insert a number`
 			// Redirect to upload page
 			http.Redirect(w, r, "/upload/", http.StatusFound)
-		} else {
-			MaxSize = newSize
 
-			StatusHTML = `file size limit has been changed`
-			// Redirect to upload page
-			http.Redirect(w, r, "/upload/", http.StatusFound)
+		} else {
+
+			mg := uc.session
+			err := ChangeSizeRestriction(newSize, mg)
+			if err != nil {
+				fmt.Println("Error: Problem updating MaxSize - ", err)
+
+			} else {
+				MaxSize = newSize
+				StatusHTML = `file size limit has been changed`
+				// Redirect to upload page
+				http.Redirect(w, r, "/upload/", http.StatusFound)
+			}
 		}
 	}
 }
 
+func ChangeSizeRestriction(s int64, mg *mgo.Session) error {
+
+	// Update size limit to the DB
+	err := mg.DB("file-server").C("limit").Update(bson.M{"limit": ""}, bson.M{"$set": bson.M{"limit": s}})
+
+	return err
+}
+
 // Get list of all users files
-func ListFiles(uc *UserController) string {
-	c := uc.session.DB("file-server").C("users")
-	session := uc.session.Copy()
+func ListFiles(mg *mgo.Session) string {
+	c := mg.DB("file-server").C("users")
+	session := mg.Copy()
 	defer session.Close()
 
 	// Get users data
@@ -267,9 +276,9 @@ func creatingHTMLcode(bob string) string {
 }
 
 // adding filenames to DB
-func addFileName(uc UserController, fn string) error {
-	c := uc.session.DB("file-server").C("users")
-	session := uc.session.Copy()
+func AddFileName(mg *mgo.Session, fn string) error {
+	c := mg.DB("file-server").C("users")
+	session := mg.Copy()
 	defer session.Close()
 
 	u := models.User{}
@@ -284,6 +293,7 @@ func addFileName(uc UserController, fn string) error {
 
 	// add filename to DB
 	err := c.Update(bson.M{"username": userUsername}, bson.M{"$set": bson.M{"filename": u.Filename}})
+
 	return err
 }
 
@@ -292,19 +302,16 @@ func (uc UserController) CreateUser(w http.ResponseWriter, r *http.Request, p ht
 	session := uc.session.Copy()
 	defer session.Close()
 
-	fmt.Println("Creating new user")
-
 	// converting form values into variables
 	username := r.FormValue("create-username")
 	usernamelower := ConvertUsernameLow(username)
 	password := r.FormValue("create-password")
 	access := r.FormValue("access")
 
-	switch {
-	case CheckCreatingUser(username, password, usernamelower, uc) == false:
+	if CheckCreatingUser(username, password, usernamelower, uc) == false {
 		// Redirect back to login
 		http.Redirect(w, r, "/", http.StatusFound)
-	default:
+	} else {
 		// Stub an user to be populated from the body
 		u := models.User{
 			Username:      username,
@@ -314,69 +321,47 @@ func (uc UserController) CreateUser(w http.ResponseWriter, r *http.Request, p ht
 		}
 
 		// Populate the user data
-		json.NewDecoder(r.Body).Decode(&u)
+		if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
+			fmt.Println("Error: Problem populating the new user data - ", err)
+		}
 
 		// Add an Id
 		u.Id = bson.NewObjectId()
 
 		// Write the user to mongo
-		uc.session.DB("file-server").C("users").Insert(u)
+		if err := uc.session.DB("file-server").C("users").Insert(u); err != nil {
+			fmt.Println("Error: Problem populating the new user data - ", err)
+		}
 
 		// new status for login page
 		StatusHTML = `User "` + username + `" was successfully created`
 
 		// Redirect back to login
 		http.Redirect(w, r, "/", http.StatusFound)
-
 	}
+
 }
 
-// RemoveUser removes an existing user resource
-func (uc UserController) RemoveUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	session := uc.session.Copy()
+func FileSizeDB(mg *mgo.Session) {
+	c := mg.DB("file-server").C("sizeLimit")
+	session := mg.Copy()
 	defer session.Close()
 
-	// Grab id
-	id := p.ByName("id")
-
-	// Verify id is ObjectId, otherwise bail
-	if !bson.IsObjectIdHex(id) {
-		w.WriteHeader(404)
-		return
+	u := models.SizeLimit{}
+	if err := c.Find(bson.M{"_id": ""}).One(&u); err != nil {
+		fmt.Println("Error getting SizeLimit", err)
 	}
 
-	// Grab id
-	oid := bson.ObjectIdHex(id)
-
-	// Remove user
-	if err := uc.session.DB("file-server").C("users").RemoveId(oid); err != nil {
-		w.WriteHeader(404)
-		return
-	}
-
-	// Write status
-	w.WriteHeader(200)
-}
-
-// update login status
-func updateLogin(un string, uc UserController, loggedin bool) error {
-	c := uc.session.DB("file-server").C("users")
-	session := uc.session.Copy()
-	defer session.Close()
-
-	var err error
-
-	fmt.Println("Updating the user loggin")
-
-	// check if user is logging in our out
-	if loggedin == true {
-		// update login status
-		err = c.Update(bson.M{"username": un}, bson.M{"$set": bson.M{"Online": "true", "LastLoggedIn": time.Now()}})
-
+	if u.Limit != 0 {
+		MaxSize = u.Limit
 	} else {
-		// else change status to logged out
-		err = c.Update(bson.M{"username": un}, bson.M{"$set": bson.M{"Online": "false"}})
-	}
+		b := models.SizeLimit{
+			Limit: MaxSize,
+		}
 
-	return err
+		// Write the limitSize to mongo
+		if err := c.Insert(b); err != nil {
+			fmt.Println("Error: Problem writing Size Limit - ", err)
+		}
+	}
 }

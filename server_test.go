@@ -5,7 +5,33 @@ import (
 )
 
 func TestCheckCreatingUsers(t *testing.T) {
-	// Figure out how to connect to the database and check if usernames are being used or not
+	// Connect to our local mongo
+	s, err := mgo.Dial("mongodb://localhost")
+
+	// Check if connection error, is mongo running?
+	if err != nil {
+		panic(err)
+	}
+
+	// user Dennis and Frej was created in advance
+	var uc UserController
+	var tests = []struct {
+		input      string
+		inputLower string
+		want       bool
+	}{
+		{"Bob", "bob", true},
+		{"Dennis", "dennis", false},
+		{"Frej", "frej", false},
+		{"Tor", "tor", true},
+		{"Sigyn", "sigyn", true},
+	}
+
+	for _, test := range tests {
+		if got := CheckCreatingUsers(test.input, test.inputLower, uc); test.want != got {
+			t.Errorf("Username/Password is too short: (%q) = %v", test.input, got)
+		}
+	}
 
 }
 
@@ -30,7 +56,7 @@ func TestEnoughCharacters(t *testing.T) {
 
 }
 
-func TestNoFunkyCharacters(t *testing.T) { // test the riffle function
+func TestNoFunkyCharacters(t *testing.T) {
 
 	var tests = []struct {
 		input string

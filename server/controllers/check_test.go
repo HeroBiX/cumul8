@@ -1,12 +1,36 @@
-package main
+package controllers
 
 import (
+	"gopkg.in/mgo.v2"
 	"testing"
 )
 
-func TestCheckCreatingUsers(t *testing.T) {
-	// Figure out how to connect to the database and check if usernames are being used or not
+func TestExistingUserName(t *testing.T) {
+	s, err := mgo.Dial("mongodb://localhost")
 
+	// Check if connection error, is mongo running?
+	if err != nil {
+		panic(err)
+	}
+	defer s.Close()
+
+	var tests = []struct {
+		input      string
+		inputLower string
+		want       bool
+	}{
+		{"Bob", "bob", true},
+		{"Dennis", "dennis", false},
+		{"Frej", "frej", false},
+		{"Tor", "tor", true},
+		{"Sigyn", "sigyn", true},
+	}
+
+	for _, test := range tests {
+		if got := ExistingUserName(test.input, test.inputLower, s); test.want != got {
+			t.Errorf("Username/Password is too short: (%q) = %v", test.input, got)
+		}
+	}
 }
 
 func TestEnoughCharacters(t *testing.T) {
@@ -23,14 +47,13 @@ func TestEnoughCharacters(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		if got := Stest.input; test.want != got {
+		if got := EnoughCharacters(test.input, test.number); test.want != got {
 			t.Errorf("Username/Password is too short: (%q) = %v", test.input, got)
 		}
 	}
-
 }
 
-func TestNoFunkyCharacters(t *testing.T) { // test the riffle function
+func TestNoFunkyCharacters(t *testing.T) {
 
 	var tests = []struct {
 		input string
@@ -45,24 +68,8 @@ func TestNoFunkyCharacters(t *testing.T) { // test the riffle function
 	}
 
 	for _, test := range tests {
-		if got := test.input; test.want != got {
+		if got := NoFunkyCharacters(test.input); test.want != got {
 			t.Errorf("Username/Password has funky characters: (%q) = %v", test.input, got)
 		}
 	}
-
-}
-
-func TestShuffleRiffleShuffle(t *testing.T) { // test the ShuffleRiffleShuffle function
-
-	for _, test := range tests {
-		// 1st part: test to see if the deck was shuffled
-		if got := Shuffle(test.input); test.want != testEq(test.inputOrg, got) {
-			t.Errorf("They didn't shuffle: (%q) = %v", test.input, got)
-		}
-		// 2nd part: test to see if any card disappears
-		if got := Shuffle(test.input); len(got) != len(test.inputOrg) {
-			t.Errorf("Card dissappeard: (%q) = %v", test.input, got)
-		}
-	}
-
 }

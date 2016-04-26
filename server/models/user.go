@@ -1,11 +1,7 @@
 package models
 
 import (
-	// Standard Libary packages
-	"time"
-
 	//Third Party packages
-
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -16,10 +12,14 @@ type (
 		Username      string        `json:"username" bson:"username"`
 		UsernameLower string        `json:"usernamelower" bson:"usernamelower"`
 		Password      string        `json:"password" bson:"password"`
-		Online        bool          `json:"online" bson:"online"`
-		LastLoggedIn  time.Time     `json:"lastloggedin" bson:"lastloggedin"`
 		Access        string        `json:"access" bson:"access"`
 		Filename      []string      `json:"filename" bson"filename"`
-		//FileHeader    textproto.MIMEHeader `json:"fileheader" bson"fileheader"`
+	}
+)
+
+type (
+	// SizeLimit
+	SizeLimit struct {
+		Limit int64 `json:"limit" bson:"limit"`
 	}
 )

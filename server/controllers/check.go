@@ -2,17 +2,21 @@ package controllers
 
 import (
 	// Standard Library packages
+	"fmt"
 	"regexp"
 	"strings"
 
 	// Thirt Party packages
 	"github.com/HeroBiX/cumul8/server/models"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
 var b bool
 
 func CheckCreatingUser(un, pass, lun string, uc UserController) bool {
+	mgSession := uc.session
+	fmt.Printf(": mgSession %T \n", mgSession)
 
 	// See if username looks good
 	switch {
@@ -24,7 +28,7 @@ func CheckCreatingUser(un, pass, lun string, uc UserController) bool {
 		StatusHTML = "The unicorns sense funky characters in your UserName"
 		b = false
 
-	case ExistingUserName(un, lun, uc) == false:
+	case ExistingUserName(un, lun, mgSession) == false:
 		StatusHTML = "Sorry sir, the Unicorns have assigned that username to someone else... much cooler than you"
 		b = false
 
@@ -74,19 +78,18 @@ func NoFunkyCharacters(a string) bool {
 }
 
 // find out if the username already exist
-func ExistingUserName(un, lun string, uc UserController) bool {
+func ExistingUserName(un, lun string, mg *mgo.Session) bool {
 	u := models.User{}
 
 	// find if the username exist
-	// Figure out a good way to handle errors here
-	uc.session.DB("file-server").C("users").Find(bson.M{"username": un}).One(&u)
+	mg.DB("file-server").C("users").Find(bson.M{"username": un}).One(&u)
 
 	if un == u.Username {
 		b = false
 	} else {
 
 		// find is lower case username exist
-		uc.session.DB("file-server").C("users").Find(bson.M{"usernamelower": lun}).One(&u)
+		mg.DB("file-server").C("users").Find(bson.M{"usernamelower": lun}).One(&u)
 
 		if lun == u.UsernameLower {
 			b = false
@@ -100,4 +103,27 @@ func ExistingUserName(un, lun string, uc UserController) bool {
 func ConvertUsernameLow(a string) string {
 	d := strings.ToLower(a)
 	return d
+}
+
+func CreateFileSize(mg *mgo.Session) {
+	c := mg.DB("file-server").C("sizeLimit")
+	mg.Close()
+
+	u := models.SizeLimit{}
+	if err := c.Find(bson.M{"_id": ""}).One(&u); err != nil {
+		fmt.Println("Error getting SizeLimit", err)
+	}
+
+	if u.Limit != 0 {
+		MaxSize = u.Limit
+	} else {
+		b := models.SizeLimit{
+			Limit: MaxSize,
+		}
+
+		// Write the limitSize to mongo
+		if err := c.Insert(b); err != nil {
+			fmt.Println("Error: Problem writing Size Limit - ", err)
+		}
+	}
 }

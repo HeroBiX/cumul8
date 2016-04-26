@@ -1,0 +1,91 @@
+you can start by checking out the http://golang.org website
+
+[10:57] 
+because all the kool kids are using Go for server programming :simple_smile:
+
+[10:58] 
+There are some great introductory videos on that site -- and you can also google for videos by Rob Pike, Andrew Gerrand or Brad Fitzpatrick
+
+Dennis Thisner [10:58 AM] 
+awesome! I want to be cool too :viking01:
+
+Colin Fox [10:58 AM] 
+:smile:
+
+[10:58] 
+The cool thing about the golang website is that it actually has an interactive go programming system built into it as a step-by-step introduction
+
+[10:58] 
+so you can edit code in the webz and see it run :simple_smile:
+
+Dennis Thisner [10:58 AM] 
+sweet! I will start digging into that after I found all faulty stuff in Disney :simple_smile:
+
+Colin Fox [10:58 AM] 
+Cool
+
+Dennis Thisner [10:59 AM] 
+that is really neat and they got a hamster thingi as their mascot
+
+Colin Fox [10:59 AM] 
+The other tech that's big for back ends is Docker
+
+[10:59] 
+Hey, it's a gopher!
+
+Dennis Thisner [10:59 AM] 
+can’t go wrong with hamsters...
+
+Colin Fox [10:59 AM] 
+Don't dis the gopher man :simple_smile:
+
+Dennis Thisner [10:59 AM] 
+whatever… he is gomster :simple_smile:
+
+[11:00] 
+docker, think Max mention something about docker. Will look into that, is it better to look into docker after getting familiar with Go or do both at the same time, like a threesome
+
+Colin Fox [11:00 AM] 
+docker first
+
+[11:00] 
+I mean go first
+
+[11:01] 
+Though they are orthogonal
+
+Dennis Thisner [11:02 AM] 
+sounds very much like an apple meets a banana
+
+Colin Fox [11:04 AM] 
+I...guess? :simple_smile: Anyway, start with the golang website :simple_smile:
+
+Dennis Thisner [11:05 AM] 
+I will do, thank you :simple_smile:
+
+[11:07] 
+and better coding in Mac OS or Linux env?
+
+Colin Fox [11:08 AM] 
+I prefer linux, but that's really a preference thing. I use mac at home.
+
+[11:09] 
+My favourite text editor is Vim, but if you are unfamiliar with it, then it's a bit of a big bite to chew, so I would recommend Atom
+
+[11:09] 
+and Atom has Golang plugins to help formatting etc
+
+[11:09] 
+or Sublime
+
+[11:09] 
+either one is fine
+
+[11:09] 
+and they both have golang plugins
+
+Dennis Thisner [11:09 AM] 
+awesome! thank you :simple_smile:
+
+Colin Fox [11:09 AM] 
+np :simple_smile:

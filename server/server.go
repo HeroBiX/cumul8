@@ -40,8 +40,8 @@ func Upload(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if controllers.CurrentUser == "" {
 		controllers.PleaseLogin(w, r)
 	} else {
-		uc := controllers.NewUserController(getSession())
-		y := template.HTML(controllers.ListFiles(uc))
+		s := getSession()
+		y := template.HTML(controllers.ListFiles(s))
 		p := &Page{Status: controllers.StatusHTML, User: controllers.CurrentUser, ListFiles: y, FileSize: controllers.MaxSize}
 		renderTemplate(w, "upload", p)
 		controllers.StatusHTML = ""
@@ -78,9 +78,6 @@ func main() {
 	// Change file size
 	r.POST("/limitsize/", uc.Limitsize)
 
-	// Remove an existing user
-	r.DELETE("/user/:id", uc.RemoveUser)
-
 	http.ListenAndServe(":8080", r)
 }
 
@@ -93,6 +90,9 @@ func getSession() *mgo.Session {
 	if err != nil {
 		panic(err)
 	}
+
+	// Check or create a DB for FileSize
+	controllers.FileSizeDB(s)
 
 	// Deliver session
 	return s
